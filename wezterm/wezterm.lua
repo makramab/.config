@@ -19,9 +19,17 @@ config.macos_window_background_blur = 15
 -- colorscheme:
 config.color_scheme = "Catppuccin Macchiato"
 
+-- set max fps
+config.max_fps = 240
+
 -- tmux
 config.leader = { key = "a", mods = "CTRL", timeout_milliseconds = 2000 }
 config.keys = {
+	{
+		mods = "LEADER",
+		key = "v",
+		action = wezterm.action.ActivateCopyMode,
+	},
 	{
 		mods = "LEADER",
 		key = "f",
@@ -162,19 +170,19 @@ local tabline = wezterm.plugin.require("https://github.com/michaelbrusegard/tabl
 tabline.setup({
 	options = {
 		icons_enabled = true,
-		theme = "Catppuccin Mocha",
+		theme = "Catppuccin Macchiato",
 		color_overrides = {},
 		section_separators = {
-			left = wezterm.nerdfonts.pl_left_hard_divider,
-			right = wezterm.nerdfonts.pl_right_hard_divider,
+			left = wezterm.nerdfonts.ple_right_half_circle_thick,
+			right = wezterm.nerdfonts.ple_left_half_circle_thick,
 		},
 		component_separators = {
-			left = wezterm.nerdfonts.pl_left_soft_divider,
-			right = wezterm.nerdfonts.pl_right_soft_divider,
+			left = wezterm.nerdfonts.ple_right_half_circle_thin,
+			right = wezterm.nerdfonts.ple_left_half_circle_thin,
 		},
 		tab_separators = {
-			left = wezterm.nerdfonts.pl_left_hard_divider,
-			right = wezterm.nerdfonts.pl_right_hard_divider,
+			left = wezterm.nerdfonts.ple_right_half_circle_thick,
+			right = wezterm.nerdfonts.ple_left_half_circle_thick,
 		},
 	},
 	sections = {
@@ -208,9 +216,9 @@ tabline.setup({
 			{ "zoomed", padding = 0 },
 		},
 		tab_inactive = { "index", { "process", padding = { left = 0, right = 1 } } },
-		tabline_x = { "ram", "cpu" },
+		tabline_x = { "ram" },
 		tabline_y = {
-			"datetime",
+			"cpu",
 			"battery",
 		},
 		tabline_z = { username },

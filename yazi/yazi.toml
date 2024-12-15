@@ -1,0 +1,9 @@
+[opener]
+csv = [
+	{ run = 'csvlens "$@"', block = true, desc = "open csv using command line interface (csvlens)"},
+]
+
+[open]
+prepend_rules = [
+	{ name = "*.csv", use = "csv" },
+]
