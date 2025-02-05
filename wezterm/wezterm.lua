@@ -115,6 +115,39 @@ config.keys = {
 		key = "UpArrow",
 		action = wezterm.action.AdjustPaneSize({ "Up", 5 }),
 	},
+	{
+		mods = "LEADER",
+		key = "r",
+		action = wezterm.action.ActivateKeyTable({
+			name = "resize_pane_mode",
+			one_shot = false,
+		}),
+	},
+}
+
+config.key_tables = {
+	-- Defines the keys that are active in our resize-pane mode.
+	-- Since we're likely to want to make multiple adjustments,
+	-- we made the activation one_shot=false. We therefore need
+	-- to define a key assignment for getting out of this mode.
+	-- 'resize_pane_mode' here corresponds to the name="resize_pane_mode" in
+	-- the key assignments above.
+	resize_pane_mode = {
+		{ key = "LeftArrow", action = wezterm.action.AdjustPaneSize({ "Left", 1 }) },
+		{ key = "h", action = wezterm.action.AdjustPaneSize({ "Left", 1 }) },
+
+		{ key = "RightArrow", action = wezterm.action.AdjustPaneSize({ "Right", 1 }) },
+		{ key = "l", action = wezterm.action.AdjustPaneSize({ "Right", 1 }) },
+
+		{ key = "UpArrow", action = wezterm.action.AdjustPaneSize({ "Up", 1 }) },
+		{ key = "k", action = wezterm.action.AdjustPaneSize({ "Up", 1 }) },
+
+		{ key = "DownArrow", action = wezterm.action.AdjustPaneSize({ "Down", 1 }) },
+		{ key = "j", action = wezterm.action.AdjustPaneSize({ "Down", 1 }) },
+
+		-- Cancel the mode by pressing escape
+		{ key = "Escape", action = "PopKeyTable" },
+	},
 }
 
 -- tab bar
@@ -129,12 +162,12 @@ smart_splits.apply_to_config(config, {
 	-- smart_splits.apply_to_config(config)
 
 	-- directional keys to use in order of: left, down, up, right
-	direction_keys = { "h", "j", "k", "l" },
+	-- direction_keys = { "h", "j", "k", "l" },
 	-- if you want to use separate direction keys for move vs. resize, you
 	-- can also do this:
 	direction_keys = {
 		move = { "h", "j", "k", "l" },
-		resize = { "U", "J", "K", "L" },
+		resize = { "H", "J", "K", "L" },
 	},
 	-- modifier keys to combine with direction_keys
 	modifiers = {
@@ -150,7 +183,7 @@ local function username()
 end
 
 local cwd = ""
-local default_opts = { max_length = 10 }
+-- local default_opts = { max_length = 10 }
 local function currentDir(tab)
 	local cwd_uri = tab:active_pane():get_current_working_dir()
 	if cwd_uri then
@@ -159,19 +192,26 @@ local function currentDir(tab)
 		if cwd == username() then
 			cwd = "~"
 		end
-		if cwd and #cwd > default_opts.max_length then
-			cwd = cwd:sub(1, default_opts.max_length - 1) .. "…"
-		end
+		-- if cwd and #cwd > default_opts.max_length then
+		-- 	cwd = cwd:sub(1, default_opts.max_length - 1) .. "…"
+		-- end
 	end
-	return " " .. (cwd or "") .. " "
+	return "  " .. (cwd or "") .. " "
 end
-
-local tabline = wezterm.plugin.require("https://github.com/michaelbrusegard/tabline.wez")
+--
+local tabline = wezterm.plugin.require("https://github.com/makramab/tabline.wez")
 tabline.setup({
 	options = {
 		icons_enabled = true,
 		theme = "Catppuccin Macchiato",
-		color_overrides = {},
+		color_overrides = {
+			-- Defining colors for a new key table
+			resize_pane_mode = {
+				a = { fg = "#181825", bg = "#cba6f7" },
+				b = { fg = "#cba6f7", bg = "#313244" },
+				c = { fg = "#cdd6f4", bg = "#181825" },
+			},
+		},
 		section_separators = {
 			left = wezterm.nerdfonts.ple_right_half_circle_thick,
 			right = wezterm.nerdfonts.ple_left_half_circle_thick,
@@ -191,7 +231,10 @@ tabline.setup({
 				"mode",
 				padding = { left = 1, right = 2 },
 				fmt = function(mode, window)
-					if window:leader_is_active() then
+					local key_table_name = window:active_key_table()
+					if key_table_name == "resize_pane_mode" then
+						return wezterm.nerdfonts.md_arrow_expand_all
+					elseif window:leader_is_active() then
 						return wezterm.nerdfonts.md_keyboard_outline
 					elseif mode == "NORMAL" then
 						return wezterm.nerdfonts.cod_terminal
@@ -205,21 +248,20 @@ tabline.setup({
 				end,
 			},
 		},
-		tabline_b = { "workspace", currentDir },
+		tabline_b = { "workspace" },
 		tabline_c = { " " },
 		tab_active = {
 			"index",
 			--{ "parent", padding = 0 },
 			--"/",
-			{ "process" },
+			{ "process", padding = { left = 0, right = 1 } },
 			-- { "cwd", padding = { left = 0, right = 1 } },
 			{ "zoomed", padding = 0 },
 		},
 		tab_inactive = { "index", { "process", padding = { left = 0, right = 1 } } },
-		tabline_x = { "ram" },
+		tabline_x = { currentDir, "ram" },
 		tabline_y = {
 			"cpu",
-			"battery",
 		},
 		tabline_z = { username },
 	},
@@ -238,6 +280,13 @@ for i = 0, 9 do
 end
 
 config.tab_and_split_indices_are_zero_based = true
+
+local mux = wezterm.mux
+
+wezterm.on("gui-startup", function()
+	local tab, pane, window = mux.spawn_window({})
+	window:gui_window():maximize()
+end)
 
 -- and finally, return the configuration to wezterm
 return config

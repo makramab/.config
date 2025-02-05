@@ -11,6 +11,14 @@ return {
     opts = {
       flavour = "macchiato",
       transparent_background = true,
+      custom_highlights = function(colors)
+        local u = require("catppuccin.utils.colors")
+        return {
+          CursorLine = {
+            bg = "NONE",
+          },
+        }
+      end,
       integrations = {
         aerial = true,
         alpha = true,
